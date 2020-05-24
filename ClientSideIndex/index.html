@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Idea Manager</title>
+		</head>
+
+		<body>
+			<div class="container">
+				<h1>Add Idea</h1>
+				<form id="ideaForm">
+					<div class="form-group">
+						<label>Text</label>
+						<input type="text" id="text" class="form-control">
+					</div>
+					<div class="form-group">
+						<label>Body</label>
+						<textarea id="body" class="form-control"></textarea>
+					</div>
+					<input type="submit" value="Submit" class="btn btn-primary">
+				</form>
+				<hr>
+				<ul id="ideas" class="list-group"> </ul>
+			</div>
+			<script src="https://code.jquery.com/jquery-1.12.4.js" integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU=" crossorigin="anonymous"> </script>
+
+			<script type="text/javascript">
+			$(document).ready(function(){
+
+				getIdeas(); //Onload get all the ideas from the database
+
+				//Submit Onclick Event.
+				$('#ideaForm').on('submit', function(e){
+				e.preventDefault();
+
+				let text = $('#text').val();
+				let body = $('#body').val();
+
+				addIdea(text, body);
+				});
+
+				// Delete Onclick Event - We say that no matter which .deleteLink the users click we get the id of that speicif one(We generate the .deleteLink with the getIdea function)
+				$('body').on('click', '.deleteLink', function(e){
+				e.preventDefault();
+
+				let id = $(this).data('id'); 
+
+				deleteIdea(id);
+
+				});
+
+				// Delete idea through api
+				function deleteIdea(id){
+					$.ajax({
+						method:'POST',
+						url:'http://laradea.dev/api/ideas/'+id,
+						data: {_method: 'DELETE'}
+					}).done(function(idea){
+						alert('Idea Removed');
+						location.reload();
+					});
+				}
+
+				// Insert ideas using api
+				function addIdea(text, body){
+					$.ajax({
+						method:'POST',
+						url:'http://laradea.dev/api/ideas',
+						data: {text: text, body: body}
+					}).done(function(idea){
+						alert('Idea # '+idea.id+' added');
+						location.reload();
+					});
+				}
+
+				// Get ideas from the API
+				function getIdeas(){
+					$.ajax({
+						url:'http://laradea.dev/api/ideas'
+					}).done(function(ideas){
+						let output = '';
+						$.each(ideas, function(key, idea){
+							output += `
+							<li class="list-group-idea">
+							<strong>${idea.text}: </strong>${idea.body} <a href="#" class="deleteLink" data-id="${idea.id}">Delete</a>
+							</li>
+								`;
+						});
+					$('#ideas').append(output);
+					});
+				}
+			});
+		</script>
+	</body>
+</html>
